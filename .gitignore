@@ -9,6 +9,8 @@ build/
 *.egg-info/
 *.egg
 cache/
+lightning_logs/
+experiments/
 
 # Virtual environments
 venv/
