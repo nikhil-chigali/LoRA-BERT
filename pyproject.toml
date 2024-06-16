@@ -6,7 +6,7 @@ authors = ["nikhil-chigali <nikhil.chigali@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.10"
 torch = {version = "^2.2.1+cu121", source = "torchwheels"}
 transformers = {extras = ["torch"], version = "^4.38.2"}
 datasets = "^2.17.1"
