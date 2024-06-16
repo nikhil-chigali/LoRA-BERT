@@ -16,6 +16,7 @@ experiments/
 venv/
 env/
 .env/
+poetry.lock
 
 # IDE specific files
 .vscode/
