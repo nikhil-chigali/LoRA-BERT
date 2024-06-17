@@ -57,22 +57,28 @@ class PeftModelForSequenceClassification(pl.LightningModule):
     def forward(self, *args, **kwargs):
         return self.model(*args, **kwargs)
 
-    def save_best_model_state_dict(self, ckpt_path):
+    @classmethod
+    def save_best_model_state_dict(cls, trainer, config):
         """
         Save the best model state dict.
         Args:
             ckpt_path (str): Path to the best model checkpoint.
+            config (dict): Configuration details.
         """
+        for callback in trainer.callbacks:
+            if isinstance(callback, pl.callbacks.ModelCheckpoint):
+                ckpt_path = callback.best_model_path
         logger.debug(f"Best model path: {ckpt_path}...")
         logger.debug(
-            f"Saving final model weights as `state_dicts/{self.config.exp_name}.pt`..."
+            f"Saving final model weights as `state_dicts/{config.exp_name}.pt`..."
         )
-        best_model = self.load_from_checkpoint(ckpt_path)
+        best_model = cls.load_from_checkpoint(ckpt_path)
         final_state_dict = best_model.state_dict()
         for name in best_model.state_dict():
             if "lora" not in name:
                 final_state_dict.pop(name)
-        torch.save(final_state_dict, f"state_dicts/{self.config.exp_name}.pt")
+        torch.save(final_state_dict, f"state_dicts/{config.exp_name}.pt")
+
 
     def training_step(self, batch, batch_idx):
         optimizer = self.optimizers()

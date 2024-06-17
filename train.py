@@ -82,6 +82,7 @@ def main(exp_name, task):
         max_epochs=config.training.max_epochs,
         accelerator=config.training.accelerator,
         precision=config.training.precision,
+        deterministic=True,
         val_check_interval=config.training.val_check_interval,
         callbacks=callbacks,
         logger=loggers,
@@ -92,7 +93,7 @@ def main(exp_name, task):
     trainer.fit(model, datamodule=data_module)
 
     logger.info("Training complete. Saving final model state dict")
-    model.save_best_model_state_dict(callbacks[0].best_model_path)
+    PeftModelForSequenceClassification.save_best_model_state_dict(trainer, config)
 
 
 if __name__ == "__main__":
