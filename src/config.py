@@ -2,7 +2,7 @@ from typing import Dict
 from ml_collections import ConfigDict
 
 
-def get_config(exp_name: str, task: int) -> Dict:
+def get_config(exp_name: str, task: str) -> Dict:
     """
     Get the configuration based on the experiment number.
 
@@ -18,7 +18,7 @@ def get_config(exp_name: str, task: int) -> Dict:
     """
 
     # Data Configuration
-    if task == 1:
+    if task == "sst2":
         data_config = ConfigDict(
             {
                 "dataset": ["glue", "sst2"],
@@ -28,7 +28,7 @@ def get_config(exp_name: str, task: int) -> Dict:
                 "num_workers": 4,
             }
         )
-    elif task == 2:
+    elif task == "mnli":
         data_config = ConfigDict(
             {
                 "dataset": ["glue", "mnli"],
@@ -39,8 +39,8 @@ def get_config(exp_name: str, task: int) -> Dict:
             }
         )
 
-    elif task == 3:
-        pass
+    else:
+        ValueError(f"Task {task} not supported")
 
     # LoRA Configuration
     lora_config = ConfigDict(

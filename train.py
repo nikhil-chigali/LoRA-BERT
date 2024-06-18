@@ -14,7 +14,7 @@ from pytorch_lightning.loggers import WandbLogger
 from loguru import logger
 
 from src.config import get_config
-from src.data import SequenceClassificationDataModule
+from src.data import get_datamodule
 from src.models import PeftModelForSequenceClassification
 
 
@@ -37,9 +37,9 @@ def main(exp_name, task):
 
     # Data module
     logger.info("Preparing data module")
-    data_module = SequenceClassificationDataModule(
+    data_module_cls = get_datamodule(task)
+    data_module = data_module_cls(
         model_name=config.model.model_name,
-        dataset_name=tuple(config.data.dataset),
         batch_size=config.training.batch_size,
         num_workers=config.data.num_workers,
     )
@@ -66,6 +66,7 @@ def main(exp_name, task):
         ),
     ]
 
+    # Loggers
     loggers = [
         CSVLogger(f"experiments/{exp_name}/logs/"),
         WandbLogger(
@@ -93,13 +94,13 @@ def main(exp_name, task):
     trainer.fit(model, datamodule=data_module)
 
     logger.info("Training complete. Saving final model state dict")
-    PeftModelForSequenceClassification.save_best_model_state_dict(trainer, config)
+    model.save_best_model_state_dict(trainer)
 
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser()
     arg_parser.add_argument("--exp_name", type=str, required=True)
-    arg_parser.add_argument("--task", type=int, required=True)
+    arg_parser.add_argument("--task", type=str, required=True)
     args = arg_parser.parse_args()
 
     main(args.exp_name, args.task)

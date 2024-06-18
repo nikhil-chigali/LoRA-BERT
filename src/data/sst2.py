@@ -1,4 +1,3 @@
-from typing import Tuple
 from functools import partial
 from torch.utils.data import DataLoader
 import pytorch_lightning as pl
@@ -6,7 +5,7 @@ from transformers import AutoTokenizer, DataCollatorWithPadding
 from datasets import load_dataset
 
 
-class SequenceClassificationDataModule(pl.LightningDataModule):
+class SST2DataModule(pl.LightningDataModule):
     """
     Sequence classification data module.
     :param model_name: The model name.
@@ -17,13 +16,12 @@ class SequenceClassificationDataModule(pl.LightningDataModule):
     def __init__(
         self,
         model_name: str,
-        dataset_name: Tuple[str, str],
         batch_size: int,
         num_workers: int = 0,
     ):
         super().__init__()
         self.model_name = model_name
-        self.dataset_name = dataset_name
+        self.dataset_name = ("glue", "sst2")
         self.batch_size = batch_size
         self.num_workers = num_workers
 

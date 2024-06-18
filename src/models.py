@@ -57,29 +57,6 @@ class PeftModelForSequenceClassification(pl.LightningModule):
     def forward(self, *args, **kwargs):
         return self.model(*args, **kwargs)
 
-    @classmethod
-    def save_best_model_state_dict(cls, trainer, config):
-        """
-        Save the best model state dict.
-        Args:
-            ckpt_path (str): Path to the best model checkpoint.
-            config (dict): Configuration details.
-        """
-        for callback in trainer.callbacks:
-            if isinstance(callback, pl.callbacks.ModelCheckpoint):
-                ckpt_path = callback.best_model_path
-        logger.debug(f"Best model path: {ckpt_path}...")
-        logger.debug(
-            f"Saving final model weights as `state_dicts/{config.exp_name}.pt`..."
-        )
-        best_model = cls.load_from_checkpoint(ckpt_path)
-        final_state_dict = best_model.state_dict()
-        for name in best_model.state_dict():
-            if "lora" not in name:
-                final_state_dict.pop(name)
-        torch.save(final_state_dict, f"state_dicts/{config.exp_name}.pt")
-
-
     def training_step(self, batch, batch_idx):
         optimizer = self.optimizers()
         optimizer.zero_grad()
@@ -102,12 +79,45 @@ class PeftModelForSequenceClassification(pl.LightningModule):
         self.manual_backward(output.loss)
         optimizer.step()
 
-    def validation_step(self, batch, batch_idx):
+    def validation_step(self, batch, batch_idx, dataloader_idx=None):
         output = self(**batch)
-        metrics = {
-            "val/loss": output.loss,
-            "val/acc": self.accuracy(output.logits, batch["labels"]),
-        }
+        if dataloader_idx == 0:
+            metrics = {
+                "val_matched/loss": output.loss,
+                "val_matched/acc": self.accuracy(output.logits, batch["labels"]),
+            }
+        elif dataloader_idx == 1:
+            metrics = {
+                "val_mismatched/loss": output.loss,
+                "val_mismatched/acc": self.accuracy(output.logits, batch["labels"]),
+            }
+        else:
+            metrics = {
+                "val/loss": output.loss,
+                "val/acc": self.accuracy(output.logits, batch["labels"]),
+            }
+        self.log_dict(
+            metrics,
+            prog_bar=True,
+            logger=True,
+            on_step=False,
+            on_epoch=True,
+        )
+
+    def test_step(self, batch, batch_idx, dataloader_idx=None):
+        output = self(**batch)
+        if dataloader_idx == 0:
+            metrics = {
+                "test_matched/acc": self.accuracy(output.logits, batch["labels"]),
+            }
+        elif dataloader_idx == 1:
+            metrics = {
+                "test_mismatched/acc": self.accuracy(output.logits, batch["labels"]),
+            }
+        else:
+            metrics = {
+                "test/acc": self.accuracy(output.logits, batch["labels"]),
+            }
         self.log_dict(
             metrics,
             prog_bar=True,
@@ -135,3 +145,30 @@ class PeftModelForSequenceClassification(pl.LightningModule):
                 "scheduler": lr_scheduler,
             },
         }
+
+    def save_best_model_state_dict(self, trainer):
+        """
+        Save the best model state dict.
+        Args:
+            trainer (Obj): Trainer object that stores the ModelCheckpoint callback.
+        """
+        for callback in trainer.callbacks:
+            if isinstance(callback, pl.callbacks.ModelCheckpoint):
+                ckpt_path = callback.best_model_path
+                break
+        else:
+            raise ValueError("ModelCheckpoint callback not found in trainer callbacks.")
+        logger.debug(f"Best model path: `{ckpt_path}`")
+        try:
+            self.model = self.__class__.load_from_checkpoint(checkpoint_path=ckpt_path)
+        except PermissionError as e:
+            logger.error(f"Error loading model from checkpoint. {e}")
+            return
+        logger.debug(
+            f"Saving final model weights as `state_dicts/{self.config.exp_name}.pt`..."
+        )
+        final_state_dict = self.model.state_dict()
+        for name in self.model.state_dict():
+            if "lora" not in name:
+                final_state_dict.pop(name)
+        torch.save(final_state_dict, f"state_dicts/{self.config.exp_name}.pt")
