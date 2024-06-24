@@ -24,6 +24,8 @@ poetry.lock
 
 # Compiled Python files
 *.pyc
+wandb/
+artifacts/
 
 # Logs and databases
 *.log
