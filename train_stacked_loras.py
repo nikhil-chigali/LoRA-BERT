@@ -22,6 +22,10 @@ def main(exp_name, task):
     # Get the configuration for GLUE-SST2
     config = get_config(exp_name, task)
 
+    config.model.init_lora_weights = "state_dicts/lora-bert-sst2_cola_kqv_LORA.pt"
+    config.model.cls_head = "state_dicts/lora-bert-sst2_cls.pt"
+    config.lora.r = 2
+
     # Create the experiment directory
     os.makedirs(f"experiments/{exp_name}/checkpoints", exist_ok=True)
     os.makedirs(f"experiments/{exp_name}/logs", exist_ok=True)
@@ -49,6 +53,9 @@ def main(exp_name, task):
     # Model
     logger.info("Creating model")
     model = PeftModelForSequenceClassification(config)
+
+    logger.info("Loading classifier head")
+    model.load_state_dict(torch.load(config.model.cls_head), strict=False)
 
     # Callbacks
     callbacks = [

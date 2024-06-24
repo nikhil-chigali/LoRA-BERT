@@ -38,7 +38,16 @@ def get_config(exp_name: str, task: str) -> Dict:
                 "num_workers": 4,
             }
         )
-
+    elif task == "cola":
+        data_config = ConfigDict(
+            {
+                "dataset": ["glue", "cola"],
+                "num_labels": 2,
+                "class_labels": ["unacceptable", "acceptable"],
+                "cache_dir": "data/cache",
+                "num_workers": 4,
+            }
+        )
     else:
         ValueError(f"Task {task} not supported")
 
@@ -56,7 +65,7 @@ def get_config(exp_name: str, task: str) -> Dict:
         {
             "model_name": "bert-base-uncased",
             "cache_dir": "cache/models",
-            "init_weights_path": "state_dicts/init-lora-bert_kqv.pt",
+            "init_lora_weights": "state_dicts/lora-bert_kqv_INIT.pt",
         }
     )
 
@@ -64,13 +73,14 @@ def get_config(exp_name: str, task: str) -> Dict:
     training_config = ConfigDict(
         {
             "batch_size": 8,
-            "lr": 2e-5,
-            "weight_decay": 0.01,
-            "max_epochs": 3,
+            "lr": 3e-4,
+            "weight_decay": 0.001,
+            "max_epochs": 1,
             "precision": "32",
             "device": "cuda",
             "accelerator": "gpu",
-            "lr_scheduler_patience": 200,
+            "lr_scheduler": True,
+            "lr_scheduler_patience": 800,
             "early_stopping_patience": 4,
             "lr_factor": 0.5,
             "val_check_interval": 0.25,

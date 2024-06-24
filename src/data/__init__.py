@@ -1,7 +1,8 @@
 from .mnli import MNLIDataModule
 from .sst2 import SST2DataModule
+from .cola import CoLADataModule
 
-__all__ = ["MNLIDataModule", "SST2DataModule"]
+__all__ = ["MNLIDataModule", "SST2DataModule", "CoLADataModule"]
 
 
 def get_datamodule(task: str):
@@ -14,5 +15,7 @@ def get_datamodule(task: str):
         return SST2DataModule
     elif task == "mnli":
         return MNLIDataModule
+    elif task == "cola":
+        return CoLADataModule
     else:
         raise ValueError(f"Task {task} not supported")
