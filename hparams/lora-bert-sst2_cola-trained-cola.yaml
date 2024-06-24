@@ -1,0 +1,59 @@
+config: !!python/object:ml_collections.config_dict.config_dict.ConfigDict
+  _convert_dict: true
+  _fields:
+    data: !!python/object:ml_collections.config_dict.config_dict.ConfigDict
+      _convert_dict: true
+      _fields:
+        cache_dir: data/cache
+        class_labels:
+        - unacceptable
+        - acceptable
+        dataset:
+        - glue
+        - cola
+        num_labels: 2
+        num_workers: 4
+      _locked: false
+      _type_safe: true
+    exp_name: lora-bert-sst2_cola-trained-cola
+    lora: !!python/object:ml_collections.config_dict.config_dict.ConfigDict
+      _convert_dict: true
+      _fields:
+        modules_to_save:
+        - classifier
+        r: 2
+        target_modules:
+        - key
+        - query
+        - value
+      _locked: false
+      _type_safe: true
+    model: !!python/object:ml_collections.config_dict.config_dict.ConfigDict
+      _convert_dict: true
+      _fields:
+        cache_dir: cache/models
+        cls_head: state_dicts/lora-bert-cola_cls.pt
+        init_lora_weights: state_dicts/lora-bert-sst2_cola_kqv_LORA.pt
+        model_name: bert-base-uncased
+      _locked: false
+      _type_safe: true
+    seed: 42
+    training: !!python/object:ml_collections.config_dict.config_dict.ConfigDict
+      _convert_dict: true
+      _fields:
+        accelerator: gpu
+        batch_size: 8
+        device: cuda
+        early_stopping_patience: 4
+        lr: 0.0003
+        lr_factor: 0.5
+        lr_scheduler: true
+        lr_scheduler_patience: 800
+        max_epochs: 1
+        precision: '32'
+        val_check_interval: 0.25
+        weight_decay: 0.001
+      _locked: false
+      _type_safe: true
+  _locked: false
+  _type_safe: true

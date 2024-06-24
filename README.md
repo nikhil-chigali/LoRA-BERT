@@ -41,14 +41,36 @@ mnli_baseline = [{'val_matched/loss/dataloader_idx_0': 0.6197290420532227,
 
 ```
 
+
 Refer to *observations.ipynb* for more details
 
-- Compare performance difference between stacked LoRA's on the original tasks.
+- Compare performance difference between stacked LoRA's without any further training, on the original tasks.
 
+## Trained stacked LoRAs
+```
+wandb: Run summary: [Trained on Task 1 for 1 epoch, with (LoRA1, LoRA2) stacked together as X_0]
+wandb:               epoch 0
+wandb:             lr-Adam 0.0
+wandb:           train/acc 0.875
+wandb:          train/loss 0.37353
+wandb: trainer/global_step 8415
+wandb:             val/acc 0.90826
+wandb:            val/loss 0.23744
+```
+```
+wandb: Run summary: [Trained on Task 2 for 1 epoch, with (LoRA1, LoRA2) stacked together as X_0]
+wandb:               epoch 0
+wandb:             lr-Adam 0.0003
+wandb:           train/acc 0.75
+wandb:          train/loss 0.42605
+wandb: trainer/global_step 1067
+wandb:             val/acc 0.82019
+wandb:            val/loss 0.47149
+```
 ## Work in Progress
 
-- Comparing change in LoRA weights using metrics like Cosine Similarity
-- Measure subspace similarity between LoRA's of different tasks
+- Comparing change in LoRA weights using metrics like Cosine Similarity and subspace similarity. 
 ![alt text](images/subspace-sim.png)
-- Try out various methods to train the stacked rank-1 LoRA's for better generalizability on both the tasks.
-- Try to implement filter/gates for training Mixture of LoRA Experts.
+  - Measure how far the stacked LoRAs `[LoRA_1, LoRA_2]` have drifted from their baseline `LoRA_1` and `LoRA_2` when trained further and `Task 1` or `Task 2`.
+- Try out various methods to train the stacked rank-1 LoRA's for better generalizability on both the tasks
+- Try to implement filter/gates for training Mixture of LoRA Experts

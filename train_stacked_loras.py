@@ -23,7 +23,7 @@ def main(exp_name, task):
     config = get_config(exp_name, task)
 
     config.model.init_lora_weights = "state_dicts/lora-bert-sst2_cola_kqv_LORA.pt"
-    config.model.cls_head = "state_dicts/lora-bert-sst2_cls.pt"
+    config.model.cls_head = "state_dicts/lora-bert-cola_cls.pt"
     config.lora.r = 2
 
     # Create the experiment directory
