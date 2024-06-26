@@ -7,6 +7,7 @@ from torch.optim import Adam
 import pytorch_lightning as pl
 from transformers import AutoModelForSequenceClassification
 from peft import LoraConfig, get_peft_model
+from peft import get_peft_model_state_dict
 from torchmetrics.classification import Accuracy
 
 from loguru import logger
@@ -111,28 +112,6 @@ class PeftModelForSequenceClassification(pl.LightningModule):
             on_epoch=True,
         )
 
-    def test_step(self, batch, batch_idx, dataloader_idx=None):
-        output = self(**batch)
-        if dataloader_idx == 0:
-            metrics = {
-                "test_matched/acc": self.accuracy(output.logits, batch["labels"]),
-            }
-        elif dataloader_idx == 1:
-            metrics = {
-                "test_mismatched/acc": self.accuracy(output.logits, batch["labels"]),
-            }
-        else:
-            metrics = {
-                "test/acc": self.accuracy(output.logits, batch["labels"]),
-            }
-        self.log_dict(
-            metrics,
-            prog_bar=True,
-            logger=True,
-            on_step=False,
-            on_epoch=True,
-        )
-
     def configure_optimizers(self):
         logger.debug("Configuring optimizer and lr scheduler...")
         optimizer = Adam(
@@ -159,7 +138,7 @@ class PeftModelForSequenceClassification(pl.LightningModule):
             trainer (Obj): Trainer object that stores the ModelCheckpoint callback.
         """
 
-        logger.debug(f"Saving current run's hyperparameters...")
+        logger.debug("Saving current run's hyperparameters...")
         latest_version = os.path.join(
             sorted(
                 os.listdir(f"experiments/{self.config.exp_name}/logs/lightning_logs")

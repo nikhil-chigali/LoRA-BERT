@@ -2,9 +2,13 @@ from typing import Dict, Tuple
 
 import torch
 import wandb
-import torch.nn.functional as F
+from torch.nn.functional import cosine_similarity
 from transformers import AutoModel
 from peft import LoraConfig, get_peft_model
+from pytorch_lightning import Trainer
+from loguru import logger
+from .models import PeftModelForSequenceClassification
+from .data import get_datamodule
 
 
 def calculate_space_requirement(model_name: str, args: Dict) -> float:
@@ -47,6 +51,43 @@ def calculate_space_requirement(model_name: str, args: Dict) -> float:
     total_memory = (memory_params + memory_optimizer + memory_activations) / 1e6
 
     return total_memory
+
+
+def evaluate_model(config):
+    model = PeftModelForSequenceClassification(config)
+    data_cls = get_datamodule(config.task)
+    data = data_cls(
+        model_name=config.model.model_name,
+        batch_size=config.training.batch_size,
+        num_workers=config.data.num_workers,
+    )
+    data.prepare_data()
+    data.setup()
+
+    trainer = Trainer(
+        max_epochs=config.training.max_epochs,
+        accelerator=config.training.accelerator,
+        precision=config.training.precision,
+        deterministic=True,
+        val_check_interval=config.training.val_check_interval,
+    )
+
+    # Model performance on training data
+    logger.info("Evaluating model performance on training data.")
+    train_perf = trainer.validate(model, dataloaders=data.train_dataloader())
+
+    # Model performance on validation data
+    logger.info("Evaluating model performance on validation data.")
+    val_perf = trainer.validate(model, dataloaders=data.val_dataloader())
+
+    perf = {
+        "train/loss": train_perf[0]["val/loss"],
+        "train/acc": train_perf[0]["val/acc"],
+        "val/loss": val_perf[0]["val/loss"],
+        "val/acc": val_perf[0]["val/acc"],
+    }
+
+    return perf
 
 
 def log_artifacts(filenames: Tuple[str]):
@@ -94,20 +135,13 @@ def get_cosine_similarities(lora1, lora2):
     Returns:
     similarities (Set): The cosine similarity measure.
     """
-    similarities = {k: F.cosine_similarity(lora1[k], lora2[k], dim=1) for k in lora1}
+    similarities = {k: cosine_similarity(lora1[k], lora2[k], dim=1) for k in lora1}
     return similarities
 
 
-def get_euclidian_distances(lora1, lora2):
+def subspace_similarity(model_A, model_B):
     """
-    Compute the euclidian distance between two tensors.
-
-    Args:
-    lora1 (Dict): The first LoRA weights.
-    lora2 (Dict): The second LoRA weights.
-
-    Returns:
-    distances (Set): The euclidian distance measure for each layer.
+    Calculates subspace similarity between ∆W of the two models. Where ∆W = lora_B x lora_A.
+    Subspace similarity is calculated using Grassmann distance between the right unitary matrices of the SVD of ∆W.
     """
-    distances = {k: torch.dist(lora1[k], lora2[k], p=2) for k in lora1}
-    return distances
+    pass
