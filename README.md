@@ -30,7 +30,7 @@ idx: a int32 feature.
 
 Bert model trained with Rank-1 LoRAs on the **Tasks 1 & 2**. The performance baselines are as follows,
 
-| Run           | train/loss | val/loss | train/acc | val/acc  |
+| Baselines           | train/loss | val/loss | train/acc | val/acc  |
 | ------------- | ---------- | -------- | --------- | -------- |
 | SST2 baseline | 0.307144   | 0.331788 | 87.2520   | 84.6330% |
 | CoLA baseline | 0.235461   | 0.417150 | 91.8305%  | 81.4423% |
@@ -47,12 +47,12 @@ The rank-1 LoRAs from the above baseline bodels are concatenated into a rank-2 a
 | Stacked (Rank1: CoLA, Rank2: SST2) on SST2 | 0.475520   | 0.491357 | 78.7672%  | 77.6376% |
 
 Change in metrics as compared to baseline metrics are as follows,
-| Run                                        | train/loss | val/loss | train/acc | val/acc   |
-| ------------------------------------------ | ---------- | -------- | --------- | --------- |
-| Stacked (Rank1: SST2, Rank2: CoLA) on SST2 | 0.168371   | 0.159568 | -8.4878% | -6.9954% |
-| Stacked (Rank1: SST2, Rank2: CoLA) on CoLA | 0.275320   | 0.150379 | -15.6601% | -7.7885% |
-| Stacked (Rank1: CoLA, Rank2: SST2) on CoLA | 0.275263   | 0.150379 | -15.6484% | -7.7885% |
-| Stacked (Rank1: CoLA, Rank2: SST2) on SST2 | 0.168377   | 0.159568 | -8.4848% | -6.9954% |
+| Performance difference compared to their Baselines | train/loss | val/loss | train/acc | val/acc  |
+| ------------------------------------------------- | ---------- | -------- | --------- | -------- |
+| Stacked (Rank1: SST2, Rank2: CoLA) on SST2        | 0.168371   | 0.159568 | -8.4878%  | -6.9954% |
+| Stacked (Rank1: SST2, Rank2: CoLA) on CoLA        | 0.275320   | 0.150379 | -15.6601% | -7.7885% |
+| Stacked (Rank1: CoLA, Rank2: SST2) on CoLA        | 0.275263   | 0.150379 | -15.6484% | -7.7885% |
+| Stacked (Rank1: CoLA, Rank2: SST2) on SST2        | 0.168377   | 0.159568 | -8.4848%  | -6.9954% |
 
 Refer to *observations.ipynb* for more details
 
