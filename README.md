@@ -28,46 +28,59 @@ idx: a int32 feature.
 
 ### Baseline performance
 
-Bert model is trained with Rank-1 LoRAs on the **Tasks 1 & 2**. The performance baselines are as follows,
+Bert model trained with Rank-1 LoRAs on the **Tasks 1 & 2**. The performance baselines are as follows,
 
-| Run                                     | train/loss | val/loss | train/acc | val/acc  |
-| --------------------------------------- | ---------- | -------- | --------- | -------- |
-| SST2 baseline                           | 0.307144   | 0.331788 | 87.2520   | 84.6330% |
-| CoLA baseline                           | 0.235461   | 0.417150 | 91.8305%  | 81.4423% |
+| Run           | train/loss | val/loss | train/acc | val/acc  |
+| ------------- | ---------- | -------- | --------- | -------- |
+| SST2 baseline | 0.307144   | 0.331788 | 87.2520   | 84.6330% |
+| CoLA baseline | 0.235461   | 0.417150 | 91.8305%  | 81.4423% |
 
 ### Stacked LoRAs, No further training
 
-| Run                                     | train/loss | val/loss | train/acc | val/acc  |
-| --------------------------------------- | ---------- | -------- | --------- | -------- |
-| Stacked SST2 (Rank1: SST2, Rank2: CoLA) | 0.475515   | 0.491357 | 78.7643%  | 77.6376% |
-| Stacked SST2 (Rank1: SST2, Rank2: CoLA) | 0.475515   | 0.491357 | 78.7643%  | 77.6376% |
-| Stacked SST2 (Rank1: SST2, Rank2: CoLA) | 0.475515   | 0.491357 | 78.7643%  | 77.6376% |
+The rank-1 LoRAs from the above baseline bodels are concatenated into a rank-2 adapter. The performance of this new model with no additional training is as follows,
+
+| Run                                        | train/loss | val/loss | train/acc | val/acc  |
+| ------------------------------------------ | ---------- | -------- | --------- | -------- |
+| Stacked (Rank1: SST2, Rank2: CoLA) on SST2 | 0.475515   | 0.491357 | 78.7643%  | 77.6376% |
+| Stacked (Rank1: SST2, Rank2: CoLA) on CoLA | 0.510781   | 0.567528 | 76.1704%  | 73.6538% |
+| Stacked (Rank1: CoLA, Rank2: SST2) on CoLA | 0.510725   | 0.567528 | 76.1821%  | 73.6538% |
+| Stacked (Rank1: CoLA, Rank2: SST2) on SST2 | 0.475520   | 0.491357 | 78.7672%  | 77.6376% |
+
+Change in metrics as compared to baseline metrics are as follows,
+| Run                                        | train/loss | val/loss | train/acc | val/acc   |
+| ------------------------------------------ | ---------- | -------- | --------- | --------- |
+| Stacked (Rank1: SST2, Rank2: CoLA) on SST2 | 0.168371   | 0.159568 | -8.4878% | -6.9954% |
+| Stacked (Rank1: SST2, Rank2: CoLA) on CoLA | 0.275320   | 0.150379 | -15.6601% | -7.7885% |
+| Stacked (Rank1: CoLA, Rank2: SST2) on CoLA | 0.275263   | 0.150379 | -15.6484% | -7.7885% |
+| Stacked (Rank1: CoLA, Rank2: SST2) on SST2 | 0.168377   | 0.159568 | -8.4848% | -6.9954% |
 
 Refer to *observations.ipynb* for more details
 
-- Compare performance difference between stacked LoRA's without any further training, on the original tasks.
 
-## Trained stacked LoRAs
+## Stacked LoRAs, with training
+
+The stacked rank-2 LoRAs along with the trained classifier heads from the baseline models are trained together for 1 epoch.
+
 ```
 wandb: Run summary: [Trained on Task 1 for 1 epoch, with (LoRA1, LoRA2) stacked together as X_0]
 wandb:               epoch 0
-wandb:             lr-Adam 0.0
-wandb:           train/acc 0.875
-wandb:          train/loss 0.37353
 wandb: trainer/global_step 8415
-wandb:             val/acc 0.90826
+wandb:          train/loss 0.37353
 wandb:            val/loss 0.23744
+wandb:           train/acc 87.5%
+wandb:             val/acc 90.826%
 ```
 ```
 wandb: Run summary: [Trained on Task 2 for 1 epoch, with (LoRA1, LoRA2) stacked together as X_0]
 wandb:               epoch 0
-wandb:             lr-Adam 0.0003
-wandb:           train/acc 0.75
-wandb:          train/loss 0.42605
 wandb: trainer/global_step 1067
-wandb:             val/acc 0.82019
+wandb:          train/loss 0.42605
 wandb:            val/loss 0.47149
+wandb:           train/acc 75%
+wandb:             val/acc 82.019%
 ```
+
+*TODO: Compare change in performance with `baseline model` and `stacked, no-training` model*
 ## Work in Progress
 
 - [*To be implemented*] Implement filter/gates for training Mixture of LoRA Experts
@@ -91,7 +104,7 @@ wandb:            val/loss 0.47149
   - Rank-1 component corresponds to `Task-1` and the rank-2 component learns `Task-2`
 - Train the blocks in red (`Task-2` classifier head, and rank-2 component of the LoRA adapter)
 
-![Step 2](image.png)
+![Step 2](images/step2.png)
 
 > - When training for `Task-1`, the rank-1 LoRA learns to adapt for the specific task exclusively.
 > - When a new task is introduced, a new rank is added to the adapter which has to learn to adapt to this new `Task-2` given `Task-1`'s component in its first rank. 
