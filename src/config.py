@@ -82,7 +82,7 @@ def get_seq_lora_config(exp_name: str, target_mods: str) -> Dict:
     training_config = ConfigDict(
         {
             "batch_size": 8,
-            "lr": 3e-4,
+            "lr": 2e-4,
             "weight_decay": 0.001,
             "max_epochs": 1,
             "precision": "32",
@@ -91,7 +91,7 @@ def get_seq_lora_config(exp_name: str, target_mods: str) -> Dict:
             "lr_scheduler": True,
             "lr_scheduler_patience": 800,
             "early_stopping_patience": 4,
-            "lr_factor": 0.5,
+            "lr_factor": 0.75,
             "val_check_interval": 0.25,
         }
     )
@@ -122,7 +122,6 @@ def add_task_to_seq_lora_config(config, task):
     ConfigDict: The updated configuration dictionary.
     """
     data_config = get_data_config(task)
-
     config.num_tasks += 1
     config.lora.r += 1
     config.tasks.append(task)
