@@ -29,7 +29,7 @@ from src.models import SequentialLoRAModel
 """
 
 
-def main(exp_name: str, tasks: List[str]):
+def main(exp_name: str, tasks: List[str]) -> None:
     config = get_seq_lora_config(exp_name, "qv")
 
     # Set the seed
